@@ -86,13 +86,13 @@ class UserSpider(scrapy.Spider):
             url_type = 'topic'
         elif len(link_section) > 4 and link_section[3] == 's':
             url_type = 'story'
-        elif len(link_section) > 4 and len(link_section) == 5:
-            url_type = 'post'
         elif (link_section[2] == 'medium.com'
             or link_section[2] == 'www.medium.com'
             and len(link_section) == 4): # https,'',medium.com,username
             # kinda odd isn't it?
             url_type = 'user'
+        elif len(link_section) == 5:
+            url_type = 'post'
         # medium_item = MediumItem(url_type=url_type, url=url)
         # self.json_pipeline.process_item(medium_item, self)
         return {
