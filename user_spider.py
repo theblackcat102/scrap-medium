@@ -54,7 +54,7 @@ class UserSpider(scrapy.Spider):
             }
         for href in response.css('a::attr(href)').extract():
 
-            if 'medium.com' in href and 'mailto' not in href:
+            if 'medium.com' in href and 'mailto' not in href and 'upgrade' not in href and len(href.split('/')) > 3:
                 url = response.urljoin(href)
 
                 yield scrapy.Request(
@@ -94,7 +94,8 @@ print('loaded')
 process = CrawlerProcess({
     'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)',
     'FEED_FORMAT': 'json',
-    'FEED_URI': 'data.json'
+    'FEED_URI': 'data.json',
+    'COOKIES_ENABLED': False,
 })
 process.crawl(UserSpider)
 process.start()
