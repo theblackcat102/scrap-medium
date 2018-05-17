@@ -77,17 +77,22 @@ class UserSpider(scrapy.Spider):
         if url in self.banned_link:
             return
 
-        url_type = 'user'
+        url_type = 'link' # default value
         link_section = href.split('/')
-
+        # match from strict condition to fuzzy condition
         if len(link_section) > 4 and link_section[3] == 'tag':
             url_type = 'tag'
-        if link_section[3] == 'topic':
+        elif len(link_section) > 4 and link_section[3] == 'topic':
             url_type = 'topic'
-        elif link_section[3] == 's':
+        elif len(link_section) > 4 and link_section[3] == 's':
             url_type = 'story'
-        elif len(link_section) == 5:
+        elif len(link_section) > 4 and len(link_section) == 5:
             url_type = 'post'
+        elif (link_section[2] == 'medium.com'
+            or link_section[2] == 'www.medium.com'
+            and len(link_section) == 4): # https,'',medium.com,username
+            # kinda odd isn't it?
+            url_type = 'user'
         # medium_item = MediumItem(url_type=url_type, url=url)
         # self.json_pipeline.process_item(medium_item, self)
         return {
