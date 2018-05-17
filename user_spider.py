@@ -32,7 +32,13 @@ class UserSpider(scrapy.Spider):
     name = 'medium'
     start_urls = ['https://medium.com']
     download_delay = 5.0
-
+    banned_word = ['upgrade', 'about', 'm', 'u', 'membership', 'search', 'policy' ,'p', 'jobs-at-medium']
+    banned_link = ['https://medium.com/about',
+        'https://medium.com/membership',
+        'https://medium.com/search',
+        'https://medium.com/upgrade',
+        'https://medium.com/',
+        'https://medium.com/creators']
     def start_request(self):
         self.urls = ['https://medium.com/']
         yield scrapy.Request(url=url, callback=self.parse)
@@ -53,26 +59,34 @@ class UserSpider(scrapy.Spider):
                 'http_status': response.status,
             }
         for href in response.css('a::attr(href)').extract():
-
-            if 'medium.com' in href and 'mailto' not in href and 'upgrade' not in href and len(href.split('/')) > 3:
-                url = response.urljoin(href)
-
+            url = response.urljoin(href)
+            if 'medium.com' in href and 'mailto' not in href:    
                 yield scrapy.Request(
                     url = url,
                     callback=self.parse,
                     errback=self.errback
                 )
+            if url not in self.banned_link and len(href.split('/')) > 3 and href.split('/')[3] not in self.banned_word:
                 yield self.save_data(href)
 
     def save_data(self, href):
         '''
             save each link as json
         '''
-        url_type = 'user'
-        if len(href.split('/')) > 4 and href.split('/')[3] == 'tag':
-            url_type = 'tag'
         url = href.split('?')[0]
-        if len(url.split('/')) == 5:
+        if url in self.banned_link:
+            return
+
+        url_type = 'user'
+        link_section = href.split('/')
+
+        if len(link_section) > 4 and link_section[3] == 'tag':
+            url_type = 'tag'
+        if link_section[3] == 'topic':
+            url_type = 'topic'
+        elif link_section[3] == 's':
+            url_type = 'story'
+        elif len(link_section) == 5:
             url_type = 'post'
         # medium_item = MediumItem(url_type=url_type, url=url)
         # self.json_pipeline.process_item(medium_item, self)
